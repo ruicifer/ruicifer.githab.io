@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>ジブンカンリ</title>
+	<meta charset="utf-8">
+  <link href="./css/style.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/
+	overcast/jquery-ui.css">
+	<style type="text/css">
+		#sun{
+			background-color: #ff3d00;
+			color: #ffffff;
+		}
+		#sat{
+			background-color:#661800;
+			color: #ffffff;
+		}
+		#today{
+			font-weight: bold;
+			border: dotted 1px #333333;
+		}
+		.holiday{
+			background-color:#f8aba6;
+		}
+	</style>
+</head>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+crossorigin="anonymous"></script>
+<script type="text/javascript" src="./js/calendar.js"></script>
+<script type="text/javascript" src="./js/holiday.js"></script>
+<script type="text/javascript" src="./js/config.js"></script>
+<script type="text/javascript" src="./js/db.js"></script>
+<script type="text/javascript">
+
+	let year  = null;
+	let month = null;
+
+	function init() {
+		year  = new Date().getFullYear();
+		month = new Date().getMonth() + 1;
+	    setBackColor();
+	    setFontColor();
+		makeCalendar(year, month);
+		showCalendar();
+	}
+	
+	function initNext() {
+		month++;
+		if (month > 12) { year++; month = 1; }
+		makeCalendar(year, month);
+		showCalendar();
+	}
+	
+	function initLast() {
+		month--;
+		if (month <= 0) { year--; month = 12; }
+		makeCalendar(year, month);
+		showCalendar();
+	}
+	
+	function showCalendar(){
+		document.getElementById('calendar').style.display = "inline";
+		document.getElementById('inputArea').style.display = "none";
+		document.getElementById('configArea').style.display = "none";
+	}
+
+	function showInputArea(){
+		document.getElementById('calendar').style.display = "none";
+		document.getElementById('inputArea').style.display = "inline";
+		document.getElementById('configArea').style.display = "none";
+	}
+	
+	function showConfigArea(){
+		document.getElementById('calendar').style.display = "none";
+		document.getElementById('inputArea').style.display = "none";
+		document.getElementById('configArea').style.display = "inline";
+		$('#configArea').slideDown(600);
+	}
+</script>
+
+<body onload="initDB();init();">
+	<header>
+		<div class="calendarHeader">
+			<span id="headerYear" ></span><br>
+			<span id="headerMonth"></span>月
+		</div>
+		<div class="navMenu">
+			<a href="javascript:init();" id="todayBtn">今日</a>
+			<a href="javascript:initLast();">＜</a>
+			<a href="javascript:initNext();">＞</a>
+			<a href="javascript:showConfigArea();" id="configBtn">設定</a>
+		</div>
+	</header>
+	<main>
+		<div id="calendar"></div>
+		<div id="inputArea">
+			<p id="selectInfo"></p>
+			<select id="hour">
+				<script>
+					//0時-23時
+					for(let i = 0; i <= 23; i++){
+						i = (i < 10) ? "0" + String(i) : i;
+						document.write('<option value="' + i + '">' + i + '</option>');
+					}
+				</script>
+			</select> 時
+			<select id="minute">
+				<script>
+					//00分-59分
+					for(let i = 0; i <= 59; i++){
+						i = (i < 10) ? "0" + String(i) : i; 
+						document.write('<option value="' + i + '">' + i + '</option>');
+					}
+				</script>
+      		</select> 分
+			<input id="memo" type="text" size="60">
+			<a href="#" id="saveBtn">登録</a>
+			<div id="result" class="box"></div>
+		</div>
+		<div id="configArea">
+      <div id="configContents">
+        <ul>
+          <li class="configMenu">
+            <h3>［背景色］</h3>
+            <input id="bgColorR" type="range" value="255" step="1" min="0" max="255" onchange="changeBackColor();">
+            <br>
+            <input id="bgColorG" type="range" value="255" step="1" min="0" max="255" onchange="changeBackColor();">
+            <br>
+            <input id="bgColorB" type="range" value="255" step="1" min="0" max="255" onchange="changeBackColor();">
+            <br><br>
+            <a href="javascript:resetBackColor();">リセット</a>
+			</li>
+          <li class="configMenu">
+            <h3>［文字色］</h3>
+            <input id="fontColorR" type="range" value="255" step="1" min="0" max="255" onchange="changeFontColor();">
+            <br>
+            <input id="fontColorG" type="range" value="255" step="1" min="0" max="255" onchange="changeFontColor();">
+            <br>
+            <input id="fontColorB" type="range" value="255" step="1" min="0" max="255" onchange="changeFontColor();">
+            <br><br>
+            <a href="javascript:resetFontColor();">リセット</a>
+          </li>
+
+          <li class="configMenu">
+            <h3>［データベース］</h3>
+			<a href="javascript:getMonthDataCount(year, month);">この年月の件数</a>
+            <a href="javascript:deleteMonthData(year, month);">この年月を削除</a>
+			<br><br>
+			<a href="javascript:outputData();">データ出力</a>
+			<br><br>
+			<a href="javascript:deleteAll();">リセット</a>
+          </li>
+        </ul>
+ </div>
+ <div id="dialogDeleteStart" style="display:none;">
+	<p>上記データを削除します。<br>よろしいですか？</p>
+ </div>
+ <div id="dialogDeleteEnd" style="display:none;">
+	<p>上記データの削除が<br>完了しました。</p>
+ </div>
+ <div id="monthDataCountStart" style="display:none;">
+	<p id="monthDataCount"></p>
+	</div>
+	<div id="outputDataStart" style="display:none;">
+		<p>全てのデータを<br>JSON形式で出力します。<br>よろしいですか？</p>
+	</div>
+</div>
+</main>
+	<footer>
+		Copyright c 2019 rui-cifer All Rights Reserved.
+	</footer>
+</body>
+
+</html>
